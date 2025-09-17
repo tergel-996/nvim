@@ -1,7 +1,21 @@
 require "nvchad.mappings"
 
+local cmp = require "cmp"
+
+cmp.setup {
+  mapping = {
+    ["<C-j>"] = cmp.mapping.complete(), -- trigger completion
+    ["<C-e>"] = cmp.mapping.close(),
+    ["<CR>"] = cmp.mapping.confirm { select = true },
+  },
+}
+
 -- Disable mappings
 local nomap = vim.keymap.del
+
+-- remove nvterm bindings
+nomap("n", "<A-h>")
+nomap("n", "<A-v>")
 
 -- whichkey
 nomap("n", "<leader>wK")
@@ -10,6 +24,15 @@ nomap("n", "<leader>x")
 
 -- Add mappings
 local map = vim.keymap.set
+
+-- tmux config
+if os.getenv "TMUX" then
+  map("n", "<C-h>", "<cmd>TmuxNavigateLeft<cr>")
+  map("n", "<C-j>", "<cmd>TmuxNavigateDown<cr>")
+  map("n", "<C-k>", "<cmd>TmuxNavigateUp<cr>")
+  map("n", "<C-l>", "<cmd>TmuxNavigateRight<cr>")
+  map("n", "<C-\\>", "<cmd>TmuxNavigatePrevious<cr>")
+end
 
 -- Map to save the file (:w)
 map("n", "<leader>w", ":w<CR>", { desc = "Save File" })

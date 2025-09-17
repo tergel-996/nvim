@@ -1,4 +1,9 @@
 return {
+  -- tmux vim-tmux-navigator
+  {
+    "christoomey/vim-tmux-navigator",
+    lazy = false,
+  },
   -- nvim surroung
   {
     "kylechui/nvim-surround",
