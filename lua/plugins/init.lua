@@ -1,81 +1,157 @@
 return {
-  -- tmux vim-tmux-navigator
+  -- Colorscheme (kanagawa dark)
   {
-    "christoomey/vim-tmux-navigator",
+    "rebelot/kanagawa.nvim",
     lazy = false,
-  },
-  -- nvim surroung
-  {
-    "kylechui/nvim-surround",
-    version = "*", -- Use for stability; omit to use `main` branch for the latest features
-    event = "VeryLazy",
+    priority = 1000,
     config = function()
-      require("nvim-surround").setup {
-        -- Configuration here, or leave empty to use defaults
+      require("kanagawa").setup {
+        compile = false,
+        undercurl = true,
+        commentStyle = { italic = true },
+        functionStyle = {},
+        keywordStyle = { italic = true },
+        statementStyle = { bold = true },
+        typeStyle = {},
+        transparent = false,
+        dimInactive = false,
+        terminalColors = true,
+        colors = {
+          theme = {
+            all = {
+              ui = {
+                bg_gutter = "none",
+              },
+            },
+          },
+        },
+        theme = "dragon", -- wave (dark), dragon (darker), lotus (light)
+        background = {
+          dark = "dragon",
+          light = "lotus",
+        },
+      }
+      vim.cmd [[colorscheme kanagawa-dragon]]
+    end,
+  },
+
+  -- Statusline (replacing NvChad statusline)
+  {
+    "nvim-lualine/lualine.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    lazy = false,
+    opts = function()
+      return require "configs.lualine"
+    end,
+  },
+
+  -- Bufferline (replacing NvChad tabufline)
+  {
+    "akinsho/bufferline.nvim",
+    version = "*",
+    dependencies = "nvim-tree/nvim-web-devicons",
+    lazy = false,
+    opts = function()
+      return require "configs.bufferline"
+    end,
+  },
+
+  -- File explorer
+  {
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
+    cmd = { "NvimTreeToggle", "NvimTreeFocus" },
+    config = function()
+      require("nvim-tree").setup(require "configs.nvimtree")
+    end,
+  },
+
+  -- Icons
+  {
+    "nvim-tree/nvim-web-devicons",
+    lazy = false,
+    config = function()
+      require("nvim-web-devicons").setup {
+        override = {},
+        default = true,
+        strict = true,
       }
     end,
   },
 
-  -- telescope configs
+  -- Tmux navigation
   {
-    "nvim-telescope/telescope.nvim",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    cmd = "Telescope",
-    opts = function()
-      local tlsp = require "nvchad.configs.telescope"
-      tlsp.pickers = vim.tbl_deep_extend("force", tlsp.pickers or {}, {
-        find_files = {
-          hidden = true, -- Show hidden files in find_files picker
-        },
-      })
-      return tlsp
+    "christoomey/vim-tmux-navigator",
+    lazy = false,
+  },
+
+  -- Surround
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    config = function()
+      require("nvim-surround").setup {}
     end,
   },
 
-  -- formatter and format on save
+  -- Telescope
+  {
+    "nvim-telescope/telescope.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "nvim-treesitter/nvim-treesitter" },
+    cmd = "Telescope",
+    opts = function()
+      return require "configs.telescope"
+    end,
+  },
+
+  -- Formatter
   {
     "stevearc/conform.nvim",
     event = "BufWritePre",
     opts = require "configs.conform",
   },
 
-  -- git stuff
+  -- Git signs
   {
     "lewis6991/gitsigns.nvim",
-    event = "User FilePost",
+    event = "BufReadPre",
     opts = function()
       return require "configs.gitsigns"
     end,
   },
 
-  -- animate the indentscope
+  -- Indent scope animation
   {
     "echasnovski/mini.indentscope",
     version = "*",
-    lazy = false,
+    event = "BufReadPre",
     opts = require("configs.miniindentscope").opts,
     init = require("configs.miniindentscope").init,
   },
 
-  -- animate the cursor and scrolling
+  -- Cursor and scroll animation
   {
     "echasnovski/mini.animate",
     version = "*",
-    lazy = false,
+    event = "VeryLazy",
     opts = require "configs.minianimate",
   },
 
-  -- lsp configs
+  -- LSP
   {
     "neovim/nvim-lspconfig",
+    event = "BufReadPre",
     config = function()
       require "configs.lspconfig"
     end,
   },
 
-  -- lang syntax
+  -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    event = { "BufReadPost", "BufNewFile" },
     opts = {
       ensure_installed = {
         "vim",
@@ -85,16 +161,25 @@ return {
         "gomod",
         "gosum",
         "javascript",
+        "typescript",
       },
+      highlight = { enable = true },
+      indent = { enable = true },
     },
+    config = function(_, opts)
+      require("nvim-treesitter.configs").setup(opts)
+    end,
   },
 
+  -- Mason
   {
     "williamboman/mason.nvim",
-    build = ":MasonUpdate", -- updates registry every time
-    config = true, -- use default config for mason core
+    cmd = { "Mason", "MasonInstall", "MasonUpdate" },
+    build = ":MasonUpdate",
+    opts = {},
   },
 
+  -- Mason tool installer
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     lazy = false,
@@ -118,11 +203,26 @@ return {
         -- SQL
         "sql-formatter",
       },
-      run_on_start = true, -- install on startup if missing
-      auto_update = false, -- disable auto updates (optional)
+      run_on_start = true,
+      auto_update = false,
     },
   },
-  -- flash plugin ench f and t
+
+  -- Completion
+  {
+    "hrsh7th/nvim-cmp",
+    event = "InsertEnter",
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+    },
+    config = function()
+      require "configs.cmp"
+    end,
+  },
+
+  -- Flash (enhanced f/t)
   {
     "folke/flash.nvim",
     event = "VeryLazy",
@@ -169,5 +269,26 @@ return {
         desc = "Toggle Flash Search",
       },
     },
+  },
+
+  -- Which-key (for showing keybindings)
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {},
+  },
+
+  -- Comment
+  {
+    "numToStr/Comment.nvim",
+    event = "VeryLazy",
+    opts = {},
+  },
+
+  -- Auto pairs
+  {
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    opts = {},
   },
 }

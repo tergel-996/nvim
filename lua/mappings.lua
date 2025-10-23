@@ -1,76 +1,116 @@
-require "nvchad.mappings"
-
-local cmp = require "cmp"
-
-cmp.setup {
-  mapping = {
-    ["<C-j>"] = cmp.mapping.complete(), -- trigger completion
-    ["<C-e>"] = cmp.mapping.close(),
-    ["<CR>"] = cmp.mapping.confirm { select = true },
-  },
-}
-
--- Disable mappings
-local nomap = vim.keymap.del
-
--- remove nvterm bindings
-nomap("n", "<A-h>")
-nomap("n", "<A-v>")
-
--- whichkey
-nomap("n", "<leader>wK")
-nomap("n", "<leader>wk")
-nomap("n", "<leader>x")
-
--- Add mappings
 local map = vim.keymap.set
 
--- tmux config
-if os.getenv "TMUX" then
-  map("n", "<C-h>", "<cmd>TmuxNavigateLeft<cr>")
-  map("n", "<C-j>", "<cmd>TmuxNavigateDown<cr>")
-  map("n", "<C-k>", "<cmd>TmuxNavigateUp<cr>")
-  map("n", "<C-l>", "<cmd>TmuxNavigateRight<cr>")
-  map("n", "<C-\\>", "<cmd>TmuxNavigatePrevious<cr>")
-end
+-- General mappings
+map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlights" })
+map("n", "<leader>w", "<cmd>w<CR>", { desc = "Save File" })
+map("n", "<leader>q", function()
+  local current_buf = vim.api.nvim_get_current_buf()
+  local buffers = vim.fn.getbufinfo({ buflisted = 1 })
 
--- Map to save the file (:w)
-map("n", "<leader>w", ":w<CR>", { desc = "Save File" })
+  -- If only one buffer, just delete it
+  if #buffers <= 1 then
+    vim.cmd("bd")
+    return
+  end
+
+  -- Try to go to alternate buffer (last edited)
+  local alt_buf = vim.fn.bufnr("#")
+
+  -- Check if alternate buffer is valid and listed
+  if alt_buf ~= -1 and alt_buf ~= current_buf and vim.fn.buflisted(alt_buf) == 1 then
+    vim.api.nvim_set_current_buf(alt_buf)
+    vim.cmd("bd " .. current_buf)
+  else
+    -- Fallback: find next valid buffer
+    local next_buf = nil
+    for i, buf in ipairs(buffers) do
+      if buf.bufnr == current_buf then
+        if i < #buffers then
+          next_buf = buffers[i + 1].bufnr
+        else
+          next_buf = buffers[1].bufnr
+        end
+        break
+      end
+    end
+
+    if next_buf then
+      vim.api.nvim_set_current_buf(next_buf)
+      vim.cmd("bd " .. current_buf)
+    end
+  end
+end, { desc = "Close buffer and go to last edited" })
 
 -- Prevent visual paste from overwriting the yank register
 map("v", "p", '"_dP', { desc = "Paste without overwriting yank" })
 
--- Easy exit from terminal mode
--- vim.api.nvim_set_keymap("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
+-- Better window navigation
+map("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+map("n", "<C-j>", "<C-w>j", { desc = "Move to bottom window" })
+map("n", "<C-k>", "<C-w>k", { desc = "Move to top window" })
+map("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
 
--- Show linting error or warnings
--- Diagnostic Float with Lua
-vim.keymap.set("n", "gl", function()
-  vim.diagnostic.open_float(0, { scope = "line" })
-end, { desc = "Open Diagnostic Float" })
+-- Tmux navigation (override window navigation if in tmux)
+if os.getenv "TMUX" then
+  map("n", "<C-h>", "<cmd>TmuxNavigateLeft<cr>", { desc = "Tmux navigate left" })
+  map("n", "<C-j>", "<cmd>TmuxNavigateDown<cr>", { desc = "Tmux navigate down" })
+  map("n", "<C-k>", "<cmd>TmuxNavigateUp<cr>", { desc = "Tmux navigate up" })
+  map("n", "<C-l>", "<cmd>TmuxNavigateRight<cr>", { desc = "Tmux navigate right" })
+  map("n", "<C-\\>", "<cmd>TmuxNavigatePrevious<cr>", { desc = "Tmux navigate previous" })
+end
 
--- Map to close buffer (tabufline) and go back prev cursor
-vim.keymap.set("n", "<leader>q", function()
-  -- get current buff
-  local currentbuf = vim.api.nvim_get_current_buf()
+-- Resize windows with arrows
+map("n", "<Up>", "<cmd>resize +2<CR>", { desc = "Increase window height" })
+map("n", "<Down>", "<cmd>resize -2<CR>", { desc = "Decrease window height" })
+map("n", "<Left>", "<cmd>vertical resize -2<CR>", { desc = "Decrease window width" })
+map("n", "<Right>", "<cmd>vertical resize +2<CR>", { desc = "Increase window width" })
 
-  -- go back prev buff
-  vim.cmd "b#"
+-- Buffer navigation
+map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
+map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
+map("n", "[b", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
+map("n", "]b", "<cmd>bnext<CR>", { desc = "Next buffer" })
+map("n", "<Tab>", "<cmd>bnext<CR>", { desc = "Next buffer" })
+map("n", "<S-Tab>", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
 
-  -- get prev buff
-  local destbuff = vim.api.nvim_get_current_buf()
+-- Move lines up/down
+map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move line down" })
+map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move line up" })
 
-  -- close first buff when this func work it's goes back
-  require("nvchad.tabufline").close_buffer(currentbuf)
+-- Better indenting
+map("v", "<", "<gv", { desc = "Indent left" })
+map("v", ">", ">gv", { desc = "Indent right" })
 
-  -- check buff is valid
-  if vim.api.nvim_buf_is_valid(destbuff) then
-    -- #b command can return unlisted buff so we need check
-    -- if no go back dest buff
-    local is_listed = vim.bo[destbuff].buflisted
-    if is_listed then
-      vim.api.nvim_set_current_buf(destbuff)
-    else
-    end
-  end
-end, { desc = "Close buffer, then jump back and re-center" })
+-- Diagnostic keymaps
+map("n", "gl", vim.diagnostic.open_float, { desc = "Show line diagnostics" })
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+
+-- LSP keymaps (will be overridden in lspconfig if LSP is attached)
+map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
+map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
+map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })
+map("n", "K", vim.lsp.buf.hover, { desc = "Hover documentation" })
+map("n", "<leader>ra", vim.lsp.buf.rename, { desc = "Rename symbol" })
+map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
+
+-- Telescope keymaps
+map("n", "<leader>ff", "<cmd>Telescope find_files<CR>", { desc = "Find files" })
+map("n", "<leader>fa", "<cmd>Telescope find_files follow=true no_ignore=true hidden=true<CR>", { desc = "Find all files" })
+map("n", "<leader>fw", "<cmd>Telescope live_grep<CR>", { desc = "Live grep" })
+map("n", "<leader>fb", "<cmd>Telescope buffers<CR>", { desc = "Find buffers" })
+map("n", "<leader>fh", "<cmd>Telescope help_tags<CR>", { desc = "Help tags" })
+map("n", "<leader>fo", "<cmd>Telescope oldfiles<CR>", { desc = "Recent files" })
+map("n", "<leader>fz", "<cmd>Telescope current_buffer_fuzzy_find<CR>", { desc = "Fuzzy find in buffer" })
+map("n", "<leader>cm", "<cmd>Telescope git_commits<CR>", { desc = "Git commits" })
+map("n", "<leader>gt", "<cmd>Telescope git_status<CR>", { desc = "Git status" })
+
+-- NvimTree
+map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
+map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "Focus file explorer" })
+
+-- Comment (handled by Comment.nvim plugin with default keymaps)
+-- gcc - line comment
+-- gbc - block comment
+-- gc in visual mode - comment selection
