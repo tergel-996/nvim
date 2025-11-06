@@ -9,6 +9,23 @@ cmp.setup {
     ["<CR>"] = cmp.mapping.confirm { select = true },
     ["<C-n>"] = cmp.mapping.select_next_item(),
     ["<C-p>"] = cmp.mapping.select_prev_item(),
+
+    -- Tab/Shift-Tab for cycling through suggestions
+    ["<Tab>"] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      else
+        fallback()
+      end
+    end, { "i", "s" }),
+
+    ["<S-Tab>"] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      else
+        fallback()
+      end
+    end, { "i", "s" }),
   },
 
   sources = cmp.config.sources({

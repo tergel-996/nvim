@@ -16,7 +16,7 @@ return {
     width = 30,
   },
   git = {
-    enable = false,
+    enable = true,
     ignore = true,
   },
   filesystem_watchers = {
