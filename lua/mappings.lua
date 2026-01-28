@@ -86,15 +86,6 @@ map("n", "gl", vim.diagnostic.open_float, { desc = "Show line diagnostics" })
 map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
 map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
 
--- LSP keymaps (will be overridden in lspconfig if LSP is attached)
-map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
-map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
-map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })
-map("n", "K", vim.lsp.buf.hover, { desc = "Hover documentation" })
-map("n", "<leader>ra", vim.lsp.buf.rename, { desc = "Rename symbol" })
-map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
-
 -- Telescope keymaps
 map("n", "<leader>ff", "<cmd>Telescope find_files<CR>", { desc = "Find files" })
 map("n", "<leader>fa", "<cmd>Telescope find_files follow=true no_ignore=true hidden=true<CR>", { desc = "Find all files" })
@@ -109,6 +100,25 @@ map("n", "<leader>gt", "<cmd>Telescope git_status<CR>", { desc = "Git status" })
 -- NvimTree
 map("n", "<C-n>", "<cmd>NvimTreeToggle<CR>", { desc = "Toggle file explorer" })
 map("n", "<leader>e", "<cmd>NvimTreeFocus<CR>", { desc = "Focus file explorer" })
+
+-- Database UI
+map("n", "<leader>db", function()
+  -- Check if DBUI is already open
+  local dbui_open = false
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.bo[buf].filetype == "dbui" then
+      dbui_open = true
+      vim.api.nvim_set_current_win(win)
+      break
+    end
+  end
+
+  -- If not open, toggle it
+  if not dbui_open then
+    vim.cmd("DBUIToggle")
+  end
+end, { desc = "Show and focus Database UI" })
 
 -- Comment (handled by Comment.nvim plugin with default keymaps)
 -- gcc - line comment

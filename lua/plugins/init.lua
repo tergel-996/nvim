@@ -66,19 +66,6 @@ return {
     end,
   },
 
-  -- Icons
-  {
-    "nvim-tree/nvim-web-devicons",
-    lazy = false,
-    config = function()
-      require("nvim-web-devicons").setup {
-        override = {},
-        default = true,
-        strict = true,
-      }
-    end,
-  },
-
   -- Tmux navigation
   {
     "christoomey/vim-tmux-navigator",
@@ -130,12 +117,13 @@ return {
     init = require("configs.miniindentscope").init,
   },
 
-  -- Cursor and scroll animation
+  -- Smooth scroll
   {
-    "echasnovski/mini.animate",
-    version = "*",
-    event = "VeryLazy",
-    opts = require "configs.minianimate",
+    "folke/snacks.nvim",
+    lazy = false,
+    opts = {
+      scroll = {},
+    },
   },
 
   -- LSP
