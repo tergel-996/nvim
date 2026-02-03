@@ -1,4 +1,16 @@
 return {
+  highlights = {
+    buffer_selected = {
+      bold = true,
+      italic = false,
+    },
+    indicator_selected = {
+      fg = "#cccccc",
+    },
+    modified_selected = {
+      fg = "#cccccc",
+    },
+  },
   options = {
     mode = "buffers",
     themable = true,
@@ -34,8 +46,8 @@ return {
         separator = true,
       },
     },
-    color_icons = true,
-    show_buffer_icons = true,
+    color_icons = false,
+    show_buffer_icons = false,
     show_buffer_close_icons = true,
     show_close_icon = true,
     show_tab_indicators = true,

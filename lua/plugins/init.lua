@@ -1,55 +1,54 @@
 return {
-  -- Colorscheme (kanagawa dark)
+  -- Colorscheme
   {
-    "rebelot/kanagawa.nvim",
+    "slugbyte/lackluster.nvim",
     lazy = false,
     priority = 1000,
     config = function()
-      require("kanagawa").setup {
-        compile = false,
-        undercurl = true,
-        commentStyle = { italic = true },
-        functionStyle = {},
-        keywordStyle = { italic = true },
-        statementStyle = { bold = true },
-        typeStyle = {},
-        transparent = false,
-        dimInactive = false,
-        terminalColors = true,
-        colors = {
-          theme = {
-            all = {
-              ui = {
-                bg_gutter = "none",
-              },
-            },
-          },
-        },
-        theme = "dragon", -- wave (dark), dragon (darker), lotus (light)
-        background = {
-          dark = "dragon",
-          light = "lotus",
-        },
-      }
-      vim.cmd [[colorscheme kanagawa-dragon]]
+      require("lackluster").setup {}
+      vim.cmd [[colorscheme lackluster-hack]]
     end,
   },
 
-  -- Statusline (replacing NvChad statusline)
+  -- Icons (ascii, monochrome)
+  {
+    "echasnovski/mini.icons",
+    lazy = false,
+    priority = 999,
+    opts = {
+      style = "ascii",
+    },
+    config = function(_, opts)
+      require("mini.icons").setup(opts)
+      local colors = { "Azure", "Blue", "Cyan", "Green", "Orange", "Purple", "Red", "Yellow" }
+      for _, name in ipairs(colors) do
+        vim.api.nvim_set_hl(0, "MiniIcons" .. name, { fg = "#a0a0a0" })
+      end
+      vim.api.nvim_set_hl(0, "MiniIconsGrey", { fg = "#cccccc" })
+    end,
+    init = function()
+      package.preload["nvim-web-devicons"] = function()
+        require("mini.icons").mock_nvim_web_devicons()
+        return package.loaded["nvim-web-devicons"]
+      end
+    end,
+  },
+
+  -- Statusline
   {
     "nvim-lualine/lualine.nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    dependencies = { "echasnovski/mini.icons" },
     lazy = false,
     opts = function()
       return require "configs.lualine"
     end,
   },
 
-  -- Bufferline (replacing NvChad tabufline)
+  -- Bufferline
   {
     "akinsho/bufferline.nvim",
     version = "*",
-    dependencies = "nvim-tree/nvim-web-devicons",
+    dependencies = { "echasnovski/mini.icons" },
     lazy = false,
     opts = function()
       return require "configs.bufferline"
@@ -59,10 +58,13 @@ return {
   -- File explorer
   {
     "nvim-tree/nvim-tree.lua",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    dependencies = { "echasnovski/mini.icons" },
     cmd = { "NvimTreeToggle", "NvimTreeFocus" },
     config = function()
       require("nvim-tree").setup(require "configs.nvimtree")
+      vim.api.nvim_set_hl(0, "NvimTreeFolderIcon", { fg = "#cccccc" })
+      vim.api.nvim_set_hl(0, "NvimTreeFolderArrowClosed", { fg = "#cccccc" })
+      vim.api.nvim_set_hl(0, "NvimTreeFolderArrowOpen", { fg = "#cccccc" })
     end,
   },
 

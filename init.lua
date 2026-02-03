@@ -67,13 +67,3 @@ require("lazy").setup("plugins", {
 require "options"
 require "mappings"
 
--- Customize nvim-tree indent line colors (make them dimmer)
-vim.api.nvim_create_autocmd("ColorScheme", {
-  pattern = "*",
-  callback = function()
-    vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = "#606b9c" })
-  end,
-})
-
--- Apply immediately if colorscheme is already loaded
-vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = "#606b9c" })
