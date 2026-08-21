@@ -147,6 +147,8 @@ return {
         "vim",
         "lua",
         "vimdoc",
+        "markdown",
+        "markdown_inline",
         "go",
         "gomod",
         "gosum",
@@ -280,5 +282,22 @@ return {
     "windwp/nvim-autopairs",
     event = "InsertEnter",
     opts = {},
+  },
+
+  -- Markdown preview in the browser
+  {
+    "iamcco/markdown-preview.nvim",
+    ft = { "markdown" },
+    cmd = { "MarkdownPreview", "MarkdownPreviewToggle", "MarkdownPreviewStop" },
+    -- build the node server instead of the prebuilt binary: the released macOS
+    -- arm64 binary ships unsigned, so it is SIGKILLed on exec and cannot be
+    -- ad-hoc signed either. rpc.vim prefers app/bin over node when present.
+    build = "cd app && npx --yes yarn install",
+    init = function()
+      vim.g.mkdp_filetypes = { "markdown" }
+      vim.g.mkdp_theme = "dark"
+      -- keep the preview open when moving to another buffer
+      vim.g.mkdp_auto_close = 0
+    end,
   },
 }

@@ -124,3 +124,6 @@ end, { desc = "Show and focus Database UI" })
 -- gcc - line comment
 -- gbc - block comment
 -- gc in visual mode - comment selection
+
+-- Markdown
+map("n", "<leader>md", "<cmd>MarkdownPreviewToggle<CR>", { desc = "Toggle markdown preview" })
